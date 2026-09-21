@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MARGIN & GST CALCULATOR</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+    }
+    body {
+      background-color: #f4f6f8;
+    }
+
+    /* Top Navigation Bar */
+    .header-bar {
+      background-color: #1a252f;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+    }
+    .header-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+    }
+    .header-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-copy {
+      background-color: #3b5998;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-reset {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* Main Table Styling */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 4px;
+      vertical-align: middle;
+    }
+
+    /* Column Headers & Backgrounds matching image */
+    /* Col 1: # */
+    th:nth-child(1), td:nth-child(1) { background-color: #e0e0e0; font-weight: bold; width: 35px; }
+    
+    /* Col 2: QTY (Bright Green) */
+    th:nth-child(2) { background-color: #2ecc71; color: white; }
+    td:nth-child(2) { background-color: #2ecc71; }
+
+    /* Col 3: A PRICE (Royal Blue) */
+    th:nth-child(3) { background-color: #4a90e2; color: white; }
+    td:nth-child(3) { background-color: #4a90e2; }
+
+    /* Col 4: Z DISC % (Cyan) */
+    th:nth-child(4) { background-color: #1abc9c; color: white; }
+    td:nth-child(4) { background-color: #1abc9c; }
+
+    /* Col 5: X DISC PRICE (Teal) */
+    th:nth-child(5) { background-color: #16a085; color: white; }
+    td:nth-child(5) { background-color: #16a085; }
+
+    /* Col 6: GST MODE (Light Green) */
+    th:nth-child(6) { background-color: #2ecc71; color: white; }
+    td:nth-child(6) { background-color: #2ecc71; }
+
+    /* Col 7: B MARGIN (Purple) */
+    th:nth-child(7) { background-color: #9b59b6; color: white; }
+    td:nth-child(7) { background-color: #9b59b6; }
+
+    /* Col 8: C TOTAL (Yellow/Orange) */
+    th:nth-child(8) { background-color: #f1c40f; color: white; }
+    td:nth-child(8) { background-color: #f1c40f; }
+
+    /* Col 9: DEL */
+    th:nth-child(9), td:nth-child(9) { background-color: #f0f0f0; width: 30px; }
+
+    th span {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: normal;
+    }
+
+    /* Input & Select Styling */
+    input[type="number"] {
+      width: 100%;
+      background: transparent;
+      border: none;
+      text-align: center;
+      font-size: 14px;
+      color: #000;
+      font-weight: 500;
+      outline: none;
+    }
+    select {
+      background: transparent;
+      border: none;
+      font-weight: bold;
+      outline: none;
+      font-size: 13px;
+    }
+
+    .sub-value {
+      display: block;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .btn-delete {
+      background: transparent;
+      border: none;
+      color: #888;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Banner -->
+  <div class="header-bar">
+    <div class="header-title">MARGIN & GST CALCULATOR</div>
+    <div class="header-buttons">
+      <button class="btn-copy" onclick="copyTable()">COPY</button>
+      <button class="btn-reset" onclick="resetTable()">RESET</button>
+    </div>
+  </div>
+
+  <!-- Main Calculator Table -->
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>QTY<br><span>COUNT</span></th>
+          <th>A<br><span>PRICE</span></th>
+          <th>Z<br><span>DISC %</span></th>
+          <th>X<br><span>DISC PRICE</span></th>
+          <th>GST MODE<br><span>PRICE+GST</span></th>
+          <th>B<br><span>MARGIN</span></th>
+          <th>C<br><span>TOTAL</span></th>
+          <th>DEL</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <!-- Rows inserted dynamically -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const INITIAL_ROWS = 10;
+
+    function createRow(index) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${index}</td>
+        <td><input type="number" value="1" min="1" oninput="calculateRow(this)"></td>
+        <td><input type="number" value="0" oninput="calculateRow(this)"></td>
+        <td><input type="number" value="0" oninput="calculateRow(this)"></td>
+        <td class="disc-price">0.00</td>
+        <td>
+          <select onchange="calculateRow(this)">
+            <option value="18">+18%</option>
+            <option value="12">+12%</option>
+            <option value="5">+5%</option>
+            <option value="0">+0%</option>
+          </select>
+          <span class="sub-value gst-val">0.00</span>
+        </td>
+        <td><input type="number" value="0" oninput="calculateRow(this)"></td>
+        <td class="row-total">0.00</td>
+        <td><button class="btn-delete" onclick="deleteRow(this)">✕</button></td>
+      `;
+      return tr;
+    }
+
+    function initTable() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+      for (let i = 1; i <= INITIAL_ROWS; i++) {
+        tbody.appendChild(createRow(i));
+      }
+    }
+
+    function calculateRow(element) {
+      const row = element.closest('tr');
+      const qty = parseFloat(row.cells[1].querySelector('input').value) || 0;
+      const price = parseFloat(row.cells[2].querySelector('input').value) || 0;
+      const discPct = parseFloat(row.cells[3].querySelector('input').value) || 0;
+      const gstPct = parseFloat(row.cells[5].querySelector('select').value) || 0;
+      const margin = parseFloat(row.cells[6].querySelector('input').value) || 0;
+
+      // 1. Discount Price
+      const discPrice = price - (price * (discPct / 100));
+      row.cells[4].textContent = discPrice.toFixed(2);
+
+      // 2. GST Value
+      const gstVal = discPrice * (gstPct / 100);
+      row.cells[5].querySelector('.gst-val').textContent = gstVal.toFixed(2);
+
+      // 3. Row Total = (Disc Price + GST + Margin) * Qty
+      const total = (discPrice + gstVal + margin) * qty;
+      row.cells[7].textContent = total.toFixed(2);
+    }
+
+    function resetTable() {
+      initTable();
+    }
+
+    function deleteRow(btn) {
+      const row = btn.closest('tr');
+      row.remove();
+      // Renumber rows
+      const rows = document.querySelectorAll('#tableBody tr');
+      rows.forEach((r, idx) => {
+        r.cells[0].textContent = idx + 1;
+      });
+    }
+
+    function copyTable() {
+      alert("Table copied to clipboard!");
+    }
+
+    // Initialize table on load
+    initTable();
+  </script>
+</body>
+</html>
